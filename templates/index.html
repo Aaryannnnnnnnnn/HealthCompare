@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="HealthCompare Pro — a healthcare comparison and appointment booking portfolio project.">
+  <title>HealthCompare Pro</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+<nav>
+  <a class="brand" href="#" onclick="go('nearby');return false;" aria-label="HealthCompare Pro home">
+    <b>⚕ HealthCompare <i>PRO</i></b>
+  </a>
+  <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle dark mode" title="Toggle dark mode">🌙</button>
+  <button class="menu-toggle" onclick="toggleMenu()" aria-label="Open navigation">☰</button>
+  <div id="navLinks">
+    <button onclick="go('nearby')">Nearby</button>
+    <button onclick="go('doctors')">Doctors</button>
+    <button onclick="go('appointment')">📅 Appointment</button>
+    <button onclick="go('labs')">🧪 Lab Tests</button>
+    <button onclick="go('ambulance')">🚑 Ambulance</button>
+    <button onclick="go('reviews')">Reviews</button>
+    <button onclick="go('comparison')">Compare</button>
+    <button onclick="go('analytics')">Analytics</button>
+    <button onclick="go('account')">Account</button>
+  </div>
+</nav>
+
+<header>
+  <div>
+    <small>SMART HEALTHCARE PLATFORM</small>
+    <h1>Compare Healthcare.<br><span>Find Help Anywhere.</span></h1>
+    <p>Find hospitals across India, explore doctor profiles, book appointments, share feedback and try a simulated ambulance workflow.</p>
+    <div class="hero-actions">
+      <button class="primary" onclick="findNearby()">📍 Use My Location</button>
+      <button onclick="go('doctors')">👨‍⚕️ Explore Doctors</button>
+    </div>
+  </div>
+  <aside>
+    <div class="hero-icon">🏥</div>
+    <h2>One platform. Better care.</h2>
+    <p>📍 Nearby Hospitals<br>👨‍⚕️ Doctor Profiles<br>⭐ Public Reviews<br>📅 Appointments<br>🚑 Demo Emergency Flow</p>
+  </aside>
+</header>
+
+<div id="toastContainer" class="toast-container" aria-live="polite" aria-atomic="true"></div>
+<main>
+<section id="nearby">
+  <div class="section-heading">
+    <div><small class="eyebrow">LOCATION SEARCH</small><h2>📍 Nearby Hospitals</h2></div>
+    <span class="pill">OpenStreetMap data</span>
+  </div>
+  <p>Search an Indian city or use your browser location. Hospital data depends on OpenStreetMap coverage and internet access.</p>
+  <div class="row search-row">
+    <div class="suggest-wrap"><input id="city" placeholder="Patna, Delhi, Bhubaneswar..." aria-label="Search Indian city" autocomplete="off" oninput="citySuggestions()" onkeydown="if(event.key==='Enter')searchCity()"><div id="citySuggestions" class="suggestions"></div></div>
+    <button class="primary" onclick="searchCity()">Search City</button>
+    <button onclick="findNearby()">Use Location</button>
+  </div>
+  <p id="hstatus" class="status" aria-live="polite"></p>
+  <div id="hospitals" class="grid"></div>
+</section>
+
+<section id="doctors" class="hide">
+  <div class="section-heading"><div><small class="eyebrow">DOCTOR DIRECTORY</small><h2>👨‍⚕️ Find Doctors</h2></div></div>
+  <div class="row search-row">
+    <div class="suggest-wrap"><input id="dq" placeholder="Search doctor, hospital or specialization" autocomplete="off" oninput="doctorSuggestions()"><div id="doctorSuggestions" class="suggestions"></div></div>
+    <select id="spec" onchange="loadDoctors()"><option value="">All Specializations</option></select>
+  </div>
+  <p id="doctorStatus" class="status" aria-live="polite"></p>
+  <div id="doctorlist" class="grid"></div>
+</section>
+
+<section id="profilePage" class="hide">
+  <div class="section-heading"><div><small class="eyebrow">DOCTOR DETAILS</small><h2>👨‍⚕️ Doctor Profile</h2></div></div>
+  <div id="profilePageContent" class="profile-card"></div>
+</section>
+
+<section id="appointment" class="hide">
+  <div class="section-heading"><div><small class="eyebrow">BOOK A VISIT</small><h2>📅 Book Appointment</h2></div></div>
+  <p>Select a doctor, date and time. The hospital is filled automatically.</p>
+  <div class="appointment-card">
+    <div class="form">
+      <label for="appointmentDoctor">Choose Doctor</label>
+      <select id="appointmentDoctor" onchange="syncAppointmentDoctor()"><option value="">Select a doctor</option></select>
+      <label for="appointmentHospital">Hospital</label>
+      <input id="appointmentHospital" placeholder="Hospital will appear automatically" readonly>
+      <label for="appointmentDate">Appointment Date</label>
+      <input id="appointmentDate" type="date">
+      <label for="appointmentPatient">Patient Name</label>
+      <input id="appointmentPatient" maxlength="80" placeholder="Enter patient name">
+      <label for="appointmentPhone">Phone Number</label>
+      <input id="appointmentPhone" inputmode="numeric" maxlength="10" placeholder="10-digit phone number">
+      <label for="appointmentSlot">Appointment Time</label>
+      <select id="appointmentSlot">
+        <option>10:00 AM</option><option>12:00 PM</option><option>03:00 PM</option><option>05:00 PM</option>
+      </select>
+      <button type="button" class="primary" onclick="confirmInlineAppointment()">Confirm Appointment</button>
+    </div>
+    <div id="appointmentResult" aria-live="polite"></div>
+  </div>
+</section>
+
+<section id="labs" class="hide">
+  <div class="section-heading">
+    <div><small class="eyebrow">DIAGNOSTIC SERVICES</small><h2>🧪 Lab Tests & Diagnostics</h2></div>
+    <span class="pill">Demo test catalogue</span>
+  </div>
+  <p>Explore common diagnostic tests, compare sample prices and schedule a demo lab visit or home sample collection.</p>
+  <div class="row search-row">
+    <input id="labSearch" placeholder="Search CBC, LFT, thyroid, vitamin D..." oninput="loadLabs()">
+    <select id="labCategory" onchange="loadLabs()"><option value="">All Categories</option></select>
+  </div>
+  <p id="labStatus" class="status" aria-live="polite"></p>
+  <div id="labList" class="grid"></div>
+  <div class="lab-booking-wrap">
+    <div class="form lab-booking-card">
+      <span class="auth-label">BOOK A TEST</span>
+      <h3>Schedule your diagnostic test</h3>
+      <p class="form-note">Choose a test, collection mode and preferred date. This is a portfolio demonstration and not a real diagnostic provider.</p>
+      <label for="labTest">Select test</label>
+      <select id="labTest" onchange="syncLabTest()"><option value="">Select a test</option></select>
+      <label for="labMode">Sample collection</label>
+      <select id="labMode"><option>Lab Visit</option><option>Home Collection</option></select>
+      <label for="labDate">Preferred date</label>
+      <input id="labDate" type="date">
+      <label for="labPatient">Patient name</label>
+      <input id="labPatient" maxlength="80" placeholder="Enter patient name">
+      <label for="labPhone">Phone number</label>
+      <input id="labPhone" inputmode="numeric" maxlength="10" placeholder="10-digit phone number">
+      <label for="labAddress">Address / location</label>
+      <textarea id="labAddress" maxlength="250" rows="3" placeholder="Enter your address or preferred lab location"></textarea>
+      <div id="labPrice" class="lab-price">Select a test to see the estimated price.</div>
+      <button type="button" class="primary" onclick="bookLabTest()">🧪 Schedule Lab Test</button>
+      <div id="labBookingResult" aria-live="polite"></div>
+    </div>
+  </div>
+</section>
+
+<section id="ambulance" class="hide">
+  <div class="emergency">
+    <div>
+      <small class="eyebrow">DEMO WORKFLOW</small>
+      <h2>🚑 Emergency Ambulance Booking</h2>
+      <p>This portfolio project simulates a dispatch workflow. It does not contact an ambulance provider.</p>
+      <div class="warning">⚠️ For a real emergency, contact your local emergency service directly.</div>
+    </div>
+    <div class="form emergency-form">
+      <input id="ap" maxlength="80" placeholder="Patient name">
+      <input id="aph" inputmode="numeric" maxlength="10" placeholder="10-digit phone">
+      <input id="pick" maxlength="200" placeholder="Pickup location">
+      <input id="dest" maxlength="200" placeholder="Destination hospital">
+      <select id="atype"><option>Basic Life Support</option><option>Advanced Life Support</option><option>ICU Ambulance</option><option>Neonatal Ambulance</option></select>
+      <button class="danger" onclick="bookAmb()">🚨 SIMULATE AMBULANCE REQUEST</button>
+    </div>
+  </div>
+  <div id="ambresult" aria-live="polite"></div>
+</section>
+
+<section id="reviews" class="hide">
+  <div class="section-heading"><div><small class="eyebrow">COMMUNITY FEEDBACK</small><h2>⭐ Public Feedback</h2></div></div>
+  <div class="two-col">
+    <div class="form">
+      <h3>Post a review</h3>
+      <select id="rtype" onchange="loadReviewTargets()"><option value="doctor">Doctor</option><option value="hospital">Hospital</option></select>
+      <select id="rtarget" aria-label="Review target"></select>
+      <input id="rname" maxlength="80" placeholder="Your name">
+      <select id="rrating"><option value="5">⭐⭐⭐⭐⭐ 5</option><option value="4">⭐⭐⭐⭐ 4</option><option value="3">⭐⭐⭐ 3</option><option value="2">⭐⭐ 2</option><option value="1">⭐ 1</option></select>
+      <textarea id="rcomment" maxlength="1000" rows="5" placeholder="Write your experience..."></textarea>
+      <button class="primary" onclick="postReview()">Post Public Feedback</button>
+    </div>
+    <div class="form">
+      <h3>View reviews</h3>
+      <select id="vtype" onchange="loadViewTargets()"><option value="doctor">Doctor</option><option value="hospital">Hospital</option></select>
+      <select id="vtarget" aria-label="View review target"></select>
+      <button onclick="viewReviews()">View Reviews</button>
+      <div id="reviewlist" aria-live="polite"></div>
+    </div>
+  </div>
+</section>
+
+
+<section id="comparison" class="hide">
+  <div class="section-heading"><div><small class="eyebrow">DECISION SUPPORT</small><h2>🏥 Hospital Comparison</h2></div></div>
+  <p>Compare sample hospital information side-by-side. This module demonstrates filtering and decision-support logic.</p>
+  <div class="row search-row"><input id="compareCity" placeholder="Filter by city (e.g. Bhubaneswar)"><button class="primary" onclick="loadComparison()">Compare Hospitals</button></div>
+  <div id="comparisonTable" class="table-wrap"></div>
+</section>
+
+<section id="account" class="hide">
+  <div class="section-heading"><div><small class="eyebrow">USER AREA</small><h2>👤 Account & Dashboard</h2></div></div>
+  <div id="accountArea"></div>
+</section>
+
+<section id="analytics" class="hide">
+  <div class="section-heading"><div><small class="eyebrow">PROJECT INSIGHTS</small><h2>📊 Platform Analytics</h2></div></div>
+  <div class="metrics">
+    <div><span>Appointments</span><b id="ac">0</b></div>
+    <div><span>Ambulance Requests</span><b id="bc">0</b></div>
+    <div><span>Public Reviews</span><b id="rc">0</b></div>
+    <div><span>Lab Bookings</span><b id="lc">0</b></div>
+  </div>
+  <div class="chart"><canvas id="chart"></canvas></div>
+</section>
+
+<section id="authPanel" class="auth-panel">
+  <div class="auth-box">
+    <div class="auth-intro">
+      <small class="eyebrow">SECURE PATIENT ACCESS</small>
+      <h2>🔐 Your healthcare account</h2>
+      <p>Create a secure demo account to manage appointments, reviews and your personalized dashboard.</p>
+    </div>
+    <div class="two-col auth-grid">
+      <div class="form auth-card">
+        <span class="auth-label">WELCOME BACK</span>
+        <h3>Sign in</h3>
+        <p class="form-note">Already have an account? Continue where you left off.</p>
+        <label for="loginEmail">Email address</label>
+        <input id="loginEmail" type="email" placeholder="you@example.com" autocomplete="email">
+        <label for="loginPassword">Password</label>
+        <input id="loginPassword" type="password" placeholder="Enter your password" autocomplete="current-password">
+        <button class="primary" onclick="login()">Sign In</button>
+        <small class="demo-note">Demo: patient@healthcompare.demo / patient123</small>
+      </div>
+      <div class="form auth-card register-card">
+        <span class="auth-label">NEW PATIENT</span>
+        <h3>Create your account</h3>
+        <p class="form-note">A simple account for your HealthCompare Pro experience.</p>
+        <label for="regName">Full name</label>
+        <input id="regName" placeholder="e.g. Aryan Choudhary" autocomplete="name">
+        <label for="regEmail">Email address</label>
+        <input id="regEmail" type="email" placeholder="you@example.com" autocomplete="email">
+        <label for="regPassword">Create password</label>
+        <input id="regPassword" type="password" placeholder="At least 6 characters" minlength="6" autocomplete="new-password">
+        <button class="primary" onclick="register()">Create Patient Account</button>
+        <small class="form-note">Your information is stored locally in this educational demo.</small>
+      </div>
+    </div>
+    <div id="authStatus" class="auth-status" role="status" aria-live="polite"></div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <b>HealthCompare Pro</b> • Educational portfolio demo • Ambulance feature is not real emergency dispatch.
+  <br><small>Hospital map data © OpenStreetMap contributors.</small>
+</footer>
+<script src="/static/app.js"></script>
+</body>
+</html>
