@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # HealthCompare Pro — MCA Final Project
 
 A Flask + SQLite educational healthcare comparison platform.
@@ -43,3 +44,7 @@ This is an educational portfolio project. Lab bookings, hospital data and ambula
 - SMS/email confirmation simulation with masked phone numbers.
 
 The PDF and messaging features are demonstrations only; no real medical order, SMS or email is sent.
+=======
+# HealthCompare
+Flask + SQLite healthcare comparison platform: find hospitals, compare doctors, book appointments and lab tests, with PDF confirmations. MCA final project.
+>>>>>>> e8948bd0f1940e415d893f4381ae2252af45b841
